@@ -1,4 +1,4 @@
-# Express.js + React Backend Setup Guide
+# FastAPI + React Backend Setup Guide
 
 ## 📁 Project Structure
 
@@ -12,11 +12,11 @@ AI DRUG FOOD/
 │   │   ├── api.js                # Base axios config
 │   │   └── interactionApi.js     # API functions for interactions
 │   └── ...
-├── backend/                       # Express.js Backend
-│   ├── server.js                 # Main server file
-│   ├── package.json
+├── backend_api/                   # FastAPI Backend
+│   ├── main.py                   # Main FastAPI server file
+│   ├── requirements.txt
 │   ├── .env                      # Environment variables
-│   └── .gitignore
+│   └── ...
 ├── .env                          # Frontend environment variables
 └── ...
 ```
@@ -35,12 +35,11 @@ npm install
 ### Step 2: Start Backend Server
 
 ```bash
-npm start    # Production mode
-# OR
-npm run dev  # Development mode with hot-reload
+cd backend_api
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The backend will run on: **http://localhost:5000**
+The backend will run on: **http://localhost:8000**
 
 ### Step 3: Install Frontend Dependencies
 
@@ -61,7 +60,7 @@ The frontend will run on: **http://localhost:5173** (or similar)
 
 ## 📡 API Endpoints
 
-### Base URL: `http://localhost:5000/api`
+### Base URL: `http://localhost:8000/api`
 
 ### Interactions Endpoints:
 
@@ -156,15 +155,16 @@ See `src/components/InteractionExample.jsx` for a full working example with:
 
 ## ⚙️ Configuration
 
-### Backend (.env)
+### FastAPI Backend (backend_api/.env)
 ```
-PORT=5000
-NODE_ENV=development
+PORT=8000
+DEBUG=True
+DATABASE_URL=sqlite:///./app.db
 ```
 
 ### Frontend (.env)
 ```
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:8000/api
 ```
 
 ---
@@ -172,10 +172,11 @@ VITE_API_URL=http://localhost:5000/api
 ## 📦 Required Dependencies
 
 ### Backend
-- `express` - Web framework
-- `cors` - Enable CORS for frontend
-- `dotenv` - Environment variables
-- `nodemon` - Auto-reload during development
+- `fastapi` - Web framework
+- `uvicorn` - ASGI server
+- `sqlalchemy` - ORM for SQLite
+- `pydantic` - Data validation
+- `python-dotenv` - Environment variables
 
 ### Frontend
 - `axios` - HTTP client (already in package.json)
@@ -193,11 +194,11 @@ app.use(cors());
 ```
 
 ### Port Already in Use?
-Change the PORT in `backend/.env` or kill the process using port 5000.
+Stop the process using port 8000 or start the FastAPI backend on a different port (for example `python main.py --port 8001`).
 
 ### Frontend can't reach backend?
 - Check `VITE_API_URL` in frontend `.env`
-- Make sure backend is running on port 5000
+- Make sure backend is running on port 8000
 - Check browser console for error messages
 
 ---
@@ -208,7 +209,7 @@ After making changes:
 
 ```bash
 git add .
-git commit -m "Add Express backend with API endpoints"
+git commit -m "Update documentation and FastAPI backend configuration"
 git push origin main
 ```
 

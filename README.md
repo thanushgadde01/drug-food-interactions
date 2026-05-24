@@ -1,25 +1,22 @@
 # AI-Based Drug-Food Interaction Predictor
 
-A modern React application powered by AI to predict potential interactions between medications and food items. This project includes both Express.js and FastAPI backend options.
+A modern React + FastAPI application for predicting medication-food interactions.
 
-## Features
-- Real-time interaction analysis
-- Personalized user profiles
-- Medication history tracking
-- Interactive, color-coded risk assessment
-- RESTful API endpoints
-- Cross-platform compatibility
+## What changed
+- The old backend has been replaced by FastAPI.
+- The application is now powered exclusively by FastAPI.
+- The React frontend communicates directly with the FastAPI backend on `http://localhost:8000/api` in development.
+- Production frontend builds are served from FastAPI via `backend_api/main.py`.
 
 ## Tech Stack
 - **Frontend**: React.js, Vite, Framer Motion, Lucide React
-- **Backend Option 1**: Express.js (Node.js) with Axios
-- **Backend Option 2**: FastAPI (Python) with async/await
+- **Backend**: FastAPI, SQLAlchemy, SQLite, XGBoost, RDKit
 - **HTTP Client**: Axios
 - **Styling**: Vanilla CSS
 
 ---
 
-## 📁 Project Structure
+## 📁 Updated Project Structure
 
 ```
 AI DRUG FOOD/
@@ -34,15 +31,9 @@ AI DRUG FOOD/
 │   │   └── interactionApi.js
 │   ├── context/
 │   └── App.jsx
-├── backend/                           # Express.js Backend
-│   ├── server.js
-│   ├── package.json
-│   ├── .env
-│   └── .gitignore
-├── backend_api/                       # FastAPI Backend (Optional)
+├── backend_api/                       # FastAPI backend
 │   ├── main.py
 │   ├── requirements.txt
-│   └── .env
 ├── package.json                       # Frontend dependencies
 ├── vite.config.js
 ├── .env                               # Frontend env variables
@@ -51,152 +42,98 @@ AI DRUG FOOD/
 
 ---
 
-## 🚀 Quick Start - Option 1: Express.js Backend
+## 🚀 Quick Start - FastAPI Backend
 
 ### Prerequisites
 - Node.js v16+ and npm
-
-### Step 1: Install Frontend Dependencies
-```bash
-npm install
-```
-
-### Step 2: Install Backend Dependencies
-```bash
-cd backend
-npm install
-cd ..
-```
-
-### Step 3: Start Both Servers
-
-**Terminal 1 - Backend (Express.js):**
-```bash
-cd backend
-npm start
-```
-Backend will run on: **http://localhost:5000**
-
-**Terminal 2 - Frontend (React):**
-```bash
-npm run dev
-```
-Frontend will run on: **http://localhost:5173**
-
----
-
-## 🐍 Quick Start - Option 2: FastAPI Backend
-
-### Prerequisites
 - Python 3.9+ and pip
 
-### Step 1: Create Python Virtual Environment
+### Step 1: Install frontend dependencies
 ```bash
-python -m venv venv
+npm install
 ```
 
-### Step 2: Activate Virtual Environment
-
-**Windows:**
-```bash
-venv\Scripts\activate
-```
-
-**macOS/Linux:**
-```bash
-source venv/bin/activate
-```
-
-### Step 3: Install FastAPI Dependencies
+### Step 2: Install backend dependencies
 ```bash
 cd backend_api
-pip install fastapi uvicorn python-dotenv aiofiles
+pip install -r requirements.txt
 cd ..
 ```
 
-(Or use `pip install -r requirements.txt` if requirements.txt exists)
-
-### Step 4: Start Both Servers
-
-**Terminal 1 - Backend (FastAPI):**
+### Step 3: Start backend
 ```bash
 cd backend_api
-python main.py
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 Backend will run on: **http://localhost:8000**
 
-**Terminal 2 - Frontend (React):**
-Update `.env` to:
-```
-VITE_API_URL=http://localhost:8000/api
-```
-Then run:
+### Step 4: Start frontend
 ```bash
 npm run dev
 ```
+Frontend will run on: **http://localhost:3000**
+
+If you need to run the frontend against the backend on a different URL, update `VITE_API_URL` in `.env`.
 
 ---
 
-## 🔧 Development Commands
+## 🔧 Backend details
 
-### Frontend (React)
+### `backend_api/main.py`
+
+This unified FastAPI backend includes:
+- CORS middleware for React dev server communication
+- SQLAlchemy + SQLite persistence for interactions and history
+- `/api/interactions` CRUD routes
+- `/api/search` search route
+- `/api/predict` ML prediction route
+- `/api/history` history fetch/log routes
+- static file serving of the React `dist/` build folder
+
+### Production build
+Run:
 ```bash
-# Install dependencies
-npm install
-
-# Development server
-npm run dev
-
-# Build for production
-npm build
-
-# Preview production build
-npm run preview
+npm run build
 ```
-
-### Backend - Express.js
-```bash
-# From backend/ directory
-
-# Install dependencies
-npm install
-
-# Development mode (with hot-reload)
-npm run dev
-
-# Production mode
-npm start
-```
-
-### Backend - FastAPI
-```bash
-# From backend_api/ directory (with venv activated)
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Development mode
-python main.py
-
-# Production mode
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
+Then start FastAPI and it will serve the compiled React app if `dist/` exists.
 
 ---
 
-## 📡 API Endpoints
-
-### Express.js Backend (http://localhost:5000/api)
+## 📡 HTTP API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/interactions` | Get all interactions |
-| GET | `/interactions/:id` | Get single interaction |
-| POST | `/interactions` | Create new interaction |
-| PUT | `/interactions/:id` | Update interaction |
-| DELETE | `/interactions/:id` | Delete interaction |
-| GET | `/search?drug=name&food=name` | Search interactions |
-| GET | `/health` | Health check |
+| GET | `/api/health` | Backend health check |
+| GET | `/api/interactions` | List all interactions |
+| GET | `/api/interactions/{id}` | Get interaction by ID |
+| POST | `/api/interactions` | Create interaction |
+| PUT | `/api/interactions/{id}` | Update interaction |
+| DELETE | `/api/interactions/{id}` | Delete interaction |
+| GET | `/api/search` | Search interactions by drug and/or food |
+| POST | `/api/predict` | Predict drug-food interaction |
+| GET | `/api/history` | List saved prediction history |
+| POST | `/api/history` | Log a prediction history item |
+
+---
+
+## Environment configuration
+
+### Frontend dev server
+Set:
+```env
+VITE_API_URL=http://localhost:8000/api
+```
+
+### Backend model and dataset configuration
+Optional environment variables for `backend_api/main.py`:
+```env
+MODEL_PATH=drug_food_model.json
+DRUG_DATASET_PATH=drug_dataset.csv
+FOOD_DATASET_PATH=food_dataset.csv
+DATABASE_URL=sqlite:///backend_api/app.db
+```
+
+If your dataset or model files live elsewhere, update those variables before starting the FastAPI backend.
 
 ### FastAPI Backend (http://localhost:8000/api)
 
@@ -270,10 +207,10 @@ print(response.json())
 
 ```bash
 # GET all interactions
-curl http://localhost:5000/api/interactions
+curl http://localhost:8000/api/interactions
 
 # POST new interaction
-curl -X POST http://localhost:5000/api/interactions \
+curl -X POST http://localhost:8000/api/interactions \
   -H "Content-Type: application/json" \
   -d '{
     "drug": "Aspirin",
@@ -283,7 +220,7 @@ curl -X POST http://localhost:5000/api/interactions \
   }'
 
 # DELETE interaction
-curl -X DELETE http://localhost:5000/api/interactions/1
+curl -X DELETE http://localhost:8000/api/interactions/1
 ```
 
 ---
@@ -292,13 +229,7 @@ curl -X DELETE http://localhost:5000/api/interactions/1
 
 ### Frontend (.env)
 ```env
-VITE_API_URL=http://localhost:5000/api
-```
-
-### Express Backend (backend/.env)
-```env
-PORT=5000
-NODE_ENV=development
+VITE_API_URL=http://localhost:8000/api
 ```
 
 ### FastAPI Backend (backend_api/.env)
@@ -323,7 +254,6 @@ See `src/components/InteractionExample.jsx` for a complete working example with:
 ## 🐛 Troubleshooting
 
 ### CORS Errors
-**Express.js:** CORS is enabled in `backend/server.js`
 **FastAPI:** Add CORS middleware in `backend_api/main.py`:
 ```python
 from fastapi.middleware.cors import CORSMiddleware
@@ -338,9 +268,8 @@ app.add_middleware(
 ```
 
 ### Port Already in Use
-**Express:** Change PORT in `backend/.env`
-**FastAPI:** Run on different port: `python main.py --port 8001`
-**Frontend:** Vite will use next available port
+**FastAPI:** Run on a different port: `python main.py --port 8001`
+**Frontend:** Vite will use the next available port
 
 ### Dependency Issues
 
@@ -370,19 +299,6 @@ pip install -r requirements.txt
 
 ## 📦 Installation Summary
 
-### Quick Setup (Express.js)
-```bash
-# Frontend
-npm install
-
-# Backend
-cd backend && npm install && cd ..
-
-# Run in 2 terminals
-terminal 1: cd backend && npm start
-terminal 2: npm run dev
-```
-
 ### Quick Setup (FastAPI)
 ```bash
 # Frontend
@@ -407,7 +323,7 @@ terminal 2: npm run dev (with VITE_API_URL=http://localhost:8000/api)
 ### Initial Push to GitHub
 ```bash
 git add .
-git commit -m "Initial commit: Add React frontend and Express backend"
+git commit -m "Initial commit: Add React frontend and FastAPI backend"
 git push origin main
 ```
 
@@ -434,7 +350,6 @@ git push origin main
 ## 📚 Resources
 
 - [React Documentation](https://react.dev)
-- [Express.js Guide](https://expressjs.com)
 - [FastAPI Documentation](https://fastapi.tiangolo.com)
 - [Vite Guide](https://vitejs.dev)
 - [Axios Documentation](https://axios-http.com)
